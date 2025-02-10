@@ -1,8 +1,9 @@
 {
   "extends": "./tsconfig.json",
-  "include": ["server.js", "tailwind.config.ts", "vite.config.ts"],
+  "include": ["tailwind.config.ts", "vite.config.ts"],
   "compilerOptions": {
     "composite": true,
+    "noEmit": false,
     "strict": true,
     "types": ["node"],
     "lib": ["ES2022"],

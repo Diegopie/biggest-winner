@@ -8,8 +8,14 @@ export function meta({}: Route.MetaArgs) {
   ];
 }
 
-export function loader({ context }: Route.LoaderArgs) {
-  return { message: context.VALUE_FROM_EXPRESS };
+export async function loader() {
+  const res = await fetch('http://localhost:3000/why');
+
+  if (!res.ok) throw new Response("Failed to fetch", { status: res.status });
+  
+  const {server_data} = await res.json();
+
+  return { message: server_data };
 }
 
 export default function Home({ loaderData }: Route.ComponentProps) {

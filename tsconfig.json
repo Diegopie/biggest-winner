@@ -4,11 +4,14 @@
     { "path": "./tsconfig.node.json" },
     { "path": "./tsconfig.vite.json" }
   ],
+  "include": ["**/*.d.ts"],
   "compilerOptions": {
+    "allowImportingTsExtensions": true,
     "checkJs": true,
     "verbatimModuleSyntax": true,
     "skipLibCheck": true,
     "strict": true,
-    "noEmit": true
+    "noEmit": false,
+    "composite": true,
   }
 }

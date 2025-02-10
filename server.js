@@ -41,7 +41,7 @@ if (DEVELOPMENT) {
   app.use(await import(BUILD_PATH).then((mod) => mod.app));
 }
 
-app.use(morgan("tiny"));
+app.use(morgan("dev"));
 
 app.listen(PORT, () => {
   console.log(`Server is running on http://localhost:${PORT}`);
