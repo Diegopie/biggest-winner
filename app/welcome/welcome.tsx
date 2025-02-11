@@ -1,7 +1,7 @@
 import logoDark from "./logo-dark.svg";
 import logoLight from "./logo-light.svg";
 
-export function Welcome({ message }: { message: string }) {
+export function Welcome({ message, data }: { message: string, data: any }) {
   console.log(message);
   return (
     <main className="flex h-screen items-center justify-center">
@@ -10,6 +10,7 @@ export function Welcome({ message }: { message: string }) {
           <h1 className="leading text-2xl font-bold text-gray-800 dark:text-gray-100">
             {message}
           </h1>
+          <pre className="h-80 overflow-auto">{JSON.stringify(data, null, 4)}</pre>
           <div className="w-[500px] max-w-[100vw] p-4">
             <img
               src={logoLight}
