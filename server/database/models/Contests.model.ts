@@ -1,8 +1,30 @@
 import mongoose from "mongoose";
 const Schema = mongoose.Schema;
-import UserModel from "./Users.model.js";
+import UsersModel from "./Users.model.ts";
 
-const ContestSchema = new Schema({
+interface ContestsModel {
+  _id: mongoose.Types.ObjectId;
+  name: string;
+  description?: string;
+  start_date?: Date;
+  end_date?: Date;
+  entry_fee: number;
+  reward_pool: number;
+  muscle_mass_winner?: UsersModel;
+  weight_loss_winner?: UsersModel;
+  participants: [{
+    user: UsersModel;
+    joinedDate: Date;
+    payment_status: "pending" | "paid" | "approved";
+    role: "owner" | "admin" | "standard";
+  }];
+  user_invitations: [{
+    user: UsersModel;
+    role: "owner" | "admin" | "standard";
+  }];
+}
+
+const ContestsSchema = new Schema<ContestsModel>({
   name: {
     type: String,
     required: true
@@ -23,16 +45,16 @@ const ContestSchema = new Schema({
   },
   muscle_mass_winner: {
     type: Schema.Types.ObjectId,
-    ref: 'User'
+    ref: 'Users'
   },
   weight_loss_winner: {
     type: Schema.Types.ObjectId,
-    ref: 'User'
+    ref: 'Users'
   },
   participants: [{
     user: {
       type: Schema.Types.ObjectId,
-      ref: 'User',
+      ref: 'Users',
       required: true
     },
     joinedDate: { type: Date, default: Date.now },
@@ -43,20 +65,20 @@ const ContestSchema = new Schema({
     },
     role: { // Role within this specific contest
       type: String,
-      enum: ["owner", "admin", "viewer"],
-      default: 'viewer'
+      enum: ["owner", "admin", "standard"],
+      default: 'standard'
     }
   }],
   user_invitations: [{
     user: {
       type: Schema.Types.ObjectId,
-      ref: 'User',
+      ref: 'Users',
       required: true
     },
     role: { // Role within this specific contest
       type: String,
-      enum: ["owner", "admin", "viewer"],
-      default: 'viewer'
+      enum: ["owner", "admin", "standard"],
+      default: 'standard'
     }
   }]
 })
@@ -85,6 +107,6 @@ const ContestSchema = new Schema({
 //   }
 // });
 
-const ContestsModel = mongoose.model('Contests', ContestSchema);
+const ContestsModel = mongoose.model<ContestsModel>('Contests', ContestsSchema);
 
 export default ContestsModel;
