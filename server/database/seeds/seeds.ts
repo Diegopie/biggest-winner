@@ -25,6 +25,7 @@ let firstContest: any = await ContestsModel.insertOne({
   start_date: new Date("2025-04-25"),
   end_date: new Date("2025-06-25"),
   entry_fee: 20 * 100,
+  interval: 14
 });
 
 
@@ -59,7 +60,22 @@ const contest_users = await UsersModel.find({
   "contests.contest": firstContest._id 
 })
 
+console.log(queryContest);
+
+const newUser = await UsersModel.insertOne({
+  first_name: "Dog",
+  last_name: "Pie",
+  username: "Pie",
+  email: "password@password.com",
+  password: "password",
+})
 
 
+import bcrypt from 'bcrypt';
+
+bcrypt.compare('password', newUser.password, function(err, result) {
+  // result == true
+  console.log(result);
+});
 
 await db?.close()

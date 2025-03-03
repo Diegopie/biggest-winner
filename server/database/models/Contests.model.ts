@@ -1,13 +1,15 @@
 import mongoose from "mongoose";
 const Schema = mongoose.Schema;
 import UsersModel from "./Users.model.ts";
+import type EntriesModel from "./Entries.model.ts";
 
 interface ContestsModel extends mongoose.Document {
   _id: mongoose.Types.ObjectId;
   name: string;
   description?: string;
-  start_date?: Date;
-  end_date?: Date;
+  start_date: Date;
+  end_date: Date;
+  interval: number;
   entry_fee: number;
   reward_pool: number;
   muscle_mass_winner?: UsersModel;
@@ -22,6 +24,12 @@ interface ContestsModel extends mongoose.Document {
     user: UsersModel;
     role: "owner" | "admin" | "standard";
   }];
+  intervals: [{
+    interval_number: number,
+    start_date: Date;
+    end_date: Date;
+    entries?: [EntriesModel]
+  }]
 }
 
 const ContestsSchema = new Schema<ContestsModel>({
@@ -30,8 +38,18 @@ const ContestsSchema = new Schema<ContestsModel>({
     required: true
   },
   description: String,
-  start_date: Date,
-  end_date: Date,
+  start_date: {
+    type: Date,
+    required: true
+  },
+  end_date: {
+    type: Date,
+    required: true
+  },
+  interval: {
+    type: Number,
+    required: true
+  },
   entry_fee: {
     type: Number,
     required: true,
@@ -80,7 +98,81 @@ const ContestsSchema = new Schema<ContestsModel>({
       enum: ["owner", "admin", "standard"],
       default: 'standard'
     }
+  }],
+  intervals: [{
+    interval_number: {
+      type: Number,
+      required: true
+    },
+    start_date: {
+      type: Date,
+      required: true
+    },
+    end_date: {
+      type: Date,
+      required: true
+    },
+    entries: [{
+      type: Schema.Types.ObjectId,
+      ref: 'Users',
+      required: false
+    }]
   }]
+})
+
+ContestsSchema.pre('save', async function (next) {
+  interface Interval {
+    interval_number: number;
+    start_date: Date;
+    end_date: Date;
+  }
+
+  function createIntervals(
+    prevDate: Date,
+    currentDate: Date,
+    endDate: Date,
+    interval: number,
+    intervals: Interval[] = [] // Inline type definition
+  ) {
+    
+    if (currentDate >= endDate) {
+      return intervals;
+    }
+
+    // function inits with startDate
+    if (currentDate.toISOString() === prevDate.toISOString()) {
+      prevDate = new Date(currentDate.setUTCDate(currentDate.getUTCDate()))
+      currentDate = new Date(currentDate.setUTCDate(currentDate.getUTCDate() + interval))
+      return createIntervals(prevDate, currentDate, endDate, interval)
+    }
+
+    const newInterval: Interval = {
+      interval_number: intervals.length,
+      start_date: new Date(prevDate.toISOString().slice(0, 10)),
+      end_date: new Date(currentDate.toISOString().slice(0, 10)),
+    }
+
+    prevDate = new Date(currentDate);
+    currentDate = new Date(currentDate.setUTCDate(currentDate.getUTCDate() + interval))
+    return createIntervals(prevDate, currentDate, endDate, interval, [...intervals, newInterval])
+  }
+
+  const intervals: Interval[] = createIntervals(
+    new Date(this.start_date),
+    new Date(this.start_date),
+    new Date(this.end_date),
+    this.interval
+  )
+
+  if (intervals.length <= 0) {
+    next();
+  }
+
+  console.log(intervals);
+  this.intervals = intervals;
+
+  next();
+
 })
 
 // * This could have worked for making two way updates but now we have to deal with requests
