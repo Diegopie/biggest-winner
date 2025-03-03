@@ -2,7 +2,7 @@ import mongoose from "mongoose";
 const Schema = mongoose.Schema;
 import UsersModel from "./Users.model.ts";
 
-interface ContestsModel {
+interface ContestsModel extends mongoose.Document {
   _id: mongoose.Types.ObjectId;
   name: string;
   description?: string;

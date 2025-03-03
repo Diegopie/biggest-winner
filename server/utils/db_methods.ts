@@ -11,6 +11,7 @@ interface UpdateDbResponse {
   msg?: string | Error;
 }
 
+type MongoModels = UsersModel | ContestsModel
 
 interface UpdateDbArrayMethod<T> {
   (
@@ -38,9 +39,9 @@ interface UpdateDbArray {
     msg?: string | Error,
     didErr?: boolean | undefined
   ) => UpdateDbResponse;
-  push: UpdateDbArrayMethod<mongoose.Document>;
-  pull: UpdateDbArrayMethod<mongoose.Document>;
-  pullObject: UpdateDbArrayPullObject<mongoose.Document>;
+  push: UpdateDbArrayMethod<MongoModels>;
+  pull: UpdateDbArrayMethod<MongoModels>;
+  pullObject: UpdateDbArrayPullObject<MongoModels>;
 }
 
 export const updateDbArray: UpdateDbArray = {
@@ -53,6 +54,7 @@ export const updateDbArray: UpdateDbArray = {
   push: async function (documentToUpdate, array_key, modifiedData, autosave = true, session = null) {
     try {
       const options = session ? { session } : {};
+console.log(options);
 
       await documentToUpdate.updateOne({
         $push: {
@@ -60,7 +62,7 @@ export const updateDbArray: UpdateDbArray = {
         }
       }, options);
 
-      if (autosave) await documentToUpdate.save()
+      if (autosave) await documentToUpdate.save(options)
 
       return this.response()
     } catch (err: unknown) {
@@ -83,7 +85,7 @@ export const updateDbArray: UpdateDbArray = {
         }
       }, options);
 
-      if (autosave) await documentToUpdate.save()
+      if (autosave) await documentToUpdate.save(options)
 
       return this.response()
     } catch (err) {
@@ -106,7 +108,7 @@ export const updateDbArray: UpdateDbArray = {
           }
         }
       }, options)
-      if (autosave) await documentToUpdate.save()
+      if (autosave) await documentToUpdate.save(options)
 
       return this.response()
     } catch (err) {
@@ -147,10 +149,12 @@ export const handleContestUsers: HandleContestUsers = {
   },
   sendInvite: async function (user, contest, role) {
     try {
-      const isAlreadyInvited = user.contests_invitations.find((invitations) => invitations.contest._id === contest._id);
+      const isAlreadyInvited = user.contest_invitations.find((invitations) => invitations.contest._id === contest._id);
       if (isAlreadyInvited) return this.response("user already invited", true)
 
-      await updateDbArray.push(user, 'contests_invitations', contest._id);
+        console.log('hit');
+        
+      await updateDbArray.push(user, 'contest_invitations', { contest: contest._id, role });
       await updateDbArray.push(contest, 'user_invitations', { user: user._id, role });
       return this.response()
 
@@ -166,8 +170,12 @@ export const handleContestUsers: HandleContestUsers = {
   handleInvite: async function (user, contest, isAccepted) {
     try {
       // Manage if invite was rescinded 
-      const invitationData = contest.user_invitations.find((invitation) => invitation.user._id === user._id);
+      const invitationData = contest.user_invitations.find((invitation) => invitation.user._id.equals(user._id));
+      console.log(contest.user_invitations);
+      
+      console.log("invite data: ", invitationData);
       if (!invitationData) return this.response("Invitation data not found", true);
+      
 
       const session = await mongoose.startSession();
       session.startTransaction();
@@ -176,15 +184,15 @@ export const handleContestUsers: HandleContestUsers = {
 
         // Update User
         await Promise.all([
-          await updateDbArray.pullObject(user, 'contests_invitations', 'contest', contest._id, false),
-          await updateDbArray.push(user, 'contests', invitationData, false)
+          await updateDbArray.pullObject(user, 'contest_invitations', 'contest', contest._id, false),
+          await updateDbArray.push(user, 'contests', { contest: contest._id, role: invitationData.role }, false)
         ])
         await user.save();
 
         // Update Contest
         await Promise.all([
           await updateDbArray.pullObject(contest, 'user_invitations', 'user', user._id, false),
-          await updateDbArray.push(contest, 'participants', invitationData, false)
+          await updateDbArray.push(contest, 'participants', {user: user._id, role: invitationData.role}, false)
         ])
         await contest.save();
 
@@ -194,7 +202,7 @@ export const handleContestUsers: HandleContestUsers = {
       }
 
       await Promise.all([
-        await updateDbArray.pullObject(user, 'contests_invitations', 'contest', contest._id),
+        await updateDbArray.pullObject(user, 'contest_invitations', 'contest', contest._id),
         await updateDbArray.pullObject(contest, 'user_invitations', "user", user._id)
       ])
 

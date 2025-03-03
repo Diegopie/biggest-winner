@@ -4,7 +4,7 @@ import ContestsModel from "./Contests.model.ts"
 
 const Schema = mongoose.Schema;
 
-interface UsersModel {
+interface UsersModel extends mongoose.Document {
   _id: mongoose.Types.ObjectId;
   email: string;
   password: string;
@@ -15,7 +15,7 @@ interface UsersModel {
     contest: ContestsModel,
     role: "owner" | "admin" | "standard"
   }];
-  contests_invitations: [{
+  contest_invitations: [{
     contest: ContestsModel,
     role: "owner" | "admin" | "standard"
   }];
@@ -56,7 +56,7 @@ const UserSchema = new Schema<UsersModel>({
       enum: ["owner", "admin", "standard"]
     }
   }],
-  contests_invitations: [{
+  contest_invitations: [{
     contest: {
       type: Schema.Types.ObjectId,
       ref: 'Contests'

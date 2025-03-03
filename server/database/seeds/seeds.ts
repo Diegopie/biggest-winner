@@ -19,7 +19,7 @@ const users = await UsersModel.insertMany(dummyUsers);
 
 // const firstUser = users[0];
 
-const firstContest = await ContestsModel.insertOne({
+let firstContest: any = await ContestsModel.insertOne({
   name: "New Contest",
   description: "This is a bunch of text",
   start_date: new Date("2025-04-25"),
@@ -31,19 +31,22 @@ const firstContest = await ContestsModel.insertOne({
 import { handleContestUsers } from '../../utils/db_methods.js';
 console.log('--Send Invite--');
 
-const secondUser = users[1];
-const thirdUser = users[2];
-const sendRes = await handleContestUsers.sendInvite(thirdUser, firstContest, 'admin');
+let secondUser: any = users[1];
+let thirdUser: any = users[2];
+const sendRes = await handleContestUsers.sendInvite(thirdUser, firstContest, 'owner');
 await handleContestUsers.sendInvite(secondUser, firstContest, 'admin');
 
-console.log(sendRes);
+const queryContest_send = await ContestsModel.findById(firstContest._id).populate("participants.user", "first_name email username")
 
-console.log(JSON.stringify(thirdUser, null, 4))
-console.log(JSON.stringify(secondUser, null, 4))
-
-
+const contest_users_send = await UsersModel.find({
+  "contest_invitations.contest":  firstContest._id 
+})
 
 console.log('--Accept Decline--');
+
+firstContest = await ContestsModel.findById(firstContest._id)
+secondUser = await UsersModel.findById(secondUser._id);
+thirdUser = await UsersModel.findById(thirdUser._id);
 
 await handleContestUsers.handleInvite(secondUser, firstContest, false)
 await handleContestUsers.handleInvite(thirdUser, firstContest, true)
@@ -53,19 +56,10 @@ await handleContestUsers.handleInvite(thirdUser, firstContest, true)
 const queryContest = await ContestsModel.findById(firstContest._id).populate("participants.user", "first_name email username")
 
 const contest_users = await UsersModel.find({
-  contests: firstContest._id
+  "contests.contest": firstContest._id 
 })
 
-console.log('contest');
 
-console.log(JSON.stringify(queryContest, null, 4))
-console.log("contest users");
 
-console.log(JSON.stringify(contest_users, null, 4))
-
-console.log('users');
-
-console.log(JSON.stringify(thirdUser, null, 4))
-console.log(JSON.stringify(secondUser, null, 4))
 
 await db?.close()
