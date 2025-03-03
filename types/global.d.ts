@@ -1,4 +1,4 @@
-interface User  {
+interface GlobalUser  {
   email: string;
   password: string;
   username: string;
