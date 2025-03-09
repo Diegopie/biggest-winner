@@ -167,7 +167,7 @@ ContestsSchema.pre('save', async function (next) {
   if (intervals.length <= 0) {
     next();
   }
-
+  
   console.log(intervals);
   this.intervals = intervals;
 
