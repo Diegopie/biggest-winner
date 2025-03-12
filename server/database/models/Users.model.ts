@@ -91,7 +91,7 @@ UserSchema.methods.isValidPassword = async function (password: string) {
   }
 };
 
-const UsersModel = mongoose.model<UsersModel>('Users', UserSchema);
+const UsersModel = mongoose.models.Users || mongoose.model<UsersModel>('Users', UserSchema);
 
 export default UsersModel
 

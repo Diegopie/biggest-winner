@@ -1,5 +1,5 @@
 import { Router } from "express";
-import { ContestsModel } from "../database/models/index.js";
+import { ContestsModel } from "../database/models/";
 
 const api_router = Router();
 
@@ -8,7 +8,8 @@ api_router.get('/why', (req, res) => {
 })
 
 api_router.get('/data', async (req, res) => {
-  const contestUsers =  await ContestsModel.findById('67a99d547038e23bb61b8349').populate("participants.user", "first_name email username")
+  // peter.jones3@example.com
+  const contestUsers =  await ContestsModel.find({}).populate("participants.user", "first_name email username")
   res.status(200).json({server_data: contestUsers})
 })
 

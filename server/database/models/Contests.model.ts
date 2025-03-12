@@ -168,7 +168,7 @@ ContestsSchema.pre('save', async function (next) {
     next();
   }
   
-  console.log(intervals);
+  // @ts-expect-error
   this.intervals = intervals;
 
   next();
@@ -199,6 +199,6 @@ ContestsSchema.pre('save', async function (next) {
 //   }
 // });
 
-const ContestsModel = mongoose.model<ContestsModel>('Contests', ContestsSchema);
+const ContestsModel = mongoose.models.Contests || mongoose.model<ContestsModel>('Contests', ContestsSchema);
 
 export default ContestsModel;
